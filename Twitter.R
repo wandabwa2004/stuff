@@ -128,8 +128,105 @@ barplot(d[1:10,]$freq, las = 2, names.arg = d[1:10,]$word,
         ylab = "Word frequencies")
 
 
+install.packages("lsa")
+install.packages("lda")
+require(lsa)
+require(lda)
+
+# LSA
+dtm.lsa <- lsa(dtm, dims=dimcalc_share())
+summary(as.textmatrix(dtm.lsa))
+
+# LDA 
+
+demo(lda)
+
+dtm.lda <- lda.collapsed.gibbs.sampler(dtm, 10, )
 
 
+set.seed(42)
+
+K <- 10 ## Num clusters
+
+str(dtm)
+
+
+
+dtm.lda <- lda.collapsed.gibbs.sampler(dtm,
+                                      K,  ## Num clusters
+                                      dtm$dimnames$Terms,
+                                      25,  ## Num iterations
+                                      0.1,
+                                      0.1,
+                                      compute.log.likelihood=TRUE) 
+
+
+
+
+> ## Get the top words in the cluster
+  > top.words <- top.topic.words(result$topics, 5, by.score=TRUE)
+
+> ## Number of documents to display
+  > N <- 10
+
+> topic.proportions <- t(result$document_sums) / colSums(result$document_sums)
+
+> topic.proportions <-
+  +   topic.proportions[sample(1:dim(topic.proportions)[1], N),]
+
+> topic.proportions[is.na(topic.proportions)] <-  1 / K
+
+> colnames(topic.proportions) <- apply(top.words, 2, paste, collapse=" ")
+
+> topic.proportions.df <- melt(cbind(data.frame(topic.proportions),
+                                     +                                    document=factor(1:N)),
+                               +                              variable.name="topic",
+                               +                              id.vars = "document")  
+
+> qplot(topic, value, fill=document, ylab="proportion",
+        +       data=topic.proportions.df, geom="bar") +
+  +   opts(axis.text.x = theme_text(angle=90, hjust=1)) +  
+  +   coord_flip() +
+  +   facet_wrap(~ document, ncol=5)
+Error: Use 'theme' instead. (Defunct; last used in version 0.9.1)
+> demo(slda)
+
+
+demo(slda)
+---- ~~~~
+  
+  Type  <Return>	 to start : 
+  
+  > set.seed(8675309)
+
+> ## Use the political blogs data set.
+  > data(poliblog.documents)
+
+> data(poliblog.vocab)
+
+> data(poliblog.ratings)
+
+> num.topics <- 10
+
+> ## Initialize the params
+  > params <- sample(c(-1, 1), num.topics, replace=TRUE)
+
+> result <- slda.em(documents=poliblog.documents,
+                    K=num.topics,
+                    vocab=poliblog.vocab,
+                    num.e.iterations=10,
+                    num.m.iterations=4,
+                    alpha=1.0, eta=0.1,
+                    poliblog.ratings / 100,
+                    params,
+                    variance=0.25,
+                    lambda=1.0,
+                    logistic=FALSE,
+                    method="sLDA")
+
+head(dtm)
+
+## not useful after here
 
 
 
