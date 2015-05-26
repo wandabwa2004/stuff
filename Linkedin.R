@@ -9,19 +9,9 @@ install_github("mpiccirilli/Rlinkedin")
 
 require(Rlinkedin)
 
-app_name <- "Stephan Test"
-consumer_key <- '75fnal6vg3lrxc'
-consumer_secret <- 'IPBVexJtYsCPUBgX'
-
-# app 2 - new one
-app_name <- 'nearmap test'
-consumer_key <- '75nc6f1x1vqmpu'
-consumer_secret <- 'GeOP1yJNr7AWmsOg'
-
-# app 3 - new one
-app_name <- 'nearmap test2'
-consumer_key <- '75xptpho3b2utm'
-consumer_secret <- 'eVCKqrIIgSf8c2oa'
+app_name <- ""
+consumer_key <- ''
+consumer_secret <- ''
 
 in.auth <- inOAuth(app_name, consumer_key, consumer_secret)
 
@@ -31,8 +21,7 @@ my.profile <- getProfile(in.auth)
 #connections.profiles <- getProfile(in.auth, connections = TRUE)
 #individual.profile <- getProfile(in.auth, id = my.connections$id[1])
 
-
-data <- read.csv("/Users/stephancuriskis/Documents/Work/Nearmap/Top1100_US_Companies.csv",sep=",")
+data <- read.csv("file.csv",sep=",")
 
 head(data$Company.Name)
 
