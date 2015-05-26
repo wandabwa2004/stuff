@@ -32,10 +32,10 @@ requestURL <- "https://api.twitter.com/oauth/request_token"
 accessURL <- "https://api.twitter.com/oauth/access_token"
 authURL <- "https://api.twitter.com/oauth/authorize"
 
-consumer_key <- "UIga6W97abWKDbh57dWDdANvT"
-consumer_secret <- "Nuz8zKzEIOtoTq8wm52XOmV1ef2OmpL8PbNCokDE9wXBg6f8sN"
-access_token <- "634505557-t1VkGER1Jj8aSSrSQgL3RL580ZMgJwUmhQgy5BvB"
-access_secret <- "RiUaIIXpjDj2ArB4uoaHZb9ehV1LDnWIY2APCyu4KG2Lq"
+consumer_key <- ""
+consumer_secret <- ""
+access_token <- ""
+access_secret <- ""
 
 #setup_twitter_oauth(consumer_key, consumer_secret)
 setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
