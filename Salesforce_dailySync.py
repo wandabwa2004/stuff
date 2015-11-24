@@ -9,8 +9,8 @@ start_time = time.clock()
 
 #  connection to Salesforce
 
-sf = Salesforce(username='stephan.curiskis@nearmap.com',
-	password='1618Andrejs3', security_token='8aS5IG3gW5mNOIoCZvKzC3pM')
+sf = Salesforce(username='',
+	password='', security_token='')
 
 # Extract Accounts modified or created today or yesterday
 columns= ['ABN__c', 'AccessRights__c', 'AccessScript__c', 'AccountSource', 'AnnualRevenue', 'Balance__c', 'BalanceActionsEmail__c', 
