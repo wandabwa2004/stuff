@@ -1,11 +1,7 @@
 
 
 library(RODBC)
-GA <- odbcDriverConnect('driver={SQL Server};server=SCURISKISLPT7\\SQLDEV_SC;database=Mirvac;trusted_connection=true')
-
-
-#u: retail.mirvac@gmail.com
-#p: h0113rlytics
+GA <- odbcDriverConnect('driver={SQL Server};server='';database='';trusted_connection=true')
 
 
 require(RGoogleAnalytics)
