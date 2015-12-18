@@ -3,11 +3,15 @@
 # according to the famous Collatz conjecture
 # https://en.wikipedia.org/wiki/Collatz_conjecture
 
-collatz <- function(num = c(1:10000)) {
+# this function returns the data frame with collatz()$data, a scatter plot with collatz()$plot
+# and a line plot with collatz()$lineplot
+
+
+collatz <- function(num = c(1:10)) {
   
   ptm <- proc.time()
   library(ggplot2)
-  # num = seq(1, 20, 3)
+
   num_t = data.frame("num0"=character(), "t"=character())
   
   for (n in 1:length(num)) {
@@ -27,16 +31,47 @@ collatz <- function(num = c(1:10000)) {
     }
     num_t = rbind(num_t, data.frame(num0, t))
   }
-  plot <- qplot(num0, t, data=num_t, xlab="Starting number", ylab="Iterations until 1")
+  
+
+  # implementation of the Sieve of Eratosthenes algorithm for prime numbers
+
+  sieve <- function(n)
+  {
+    n <- as.integer(n)
+    if(n > 1e6) stop("n too large")
+    primes <- rep(TRUE, n)
+    primes[1] <- FALSE
+    last.prime <- 2L
+    for(i in last.prime:floor(sqrt(n)))
+    {
+      primes[seq.int(2L*last.prime, n, last.prime)] <- FALSE
+      last.prime <- last.prime + min(which(primes[(last.prime+1):n]))
+    }
+    which(primes)
+  }
+  
+
+  # create list of prime numbers
+  primes <- sieve(max(num))
+  
+  # Add prime number flag to data.frame
+  num_t$isPrime <- F
+  num_t[num_t$num0 %in% primes, ]$isPrime <- T
+  
+  plot <- qplot(num0, t, data=num_t, xlab="Starting number", ylab="Iterations until 1", colour=isPrime)
+  lineplot <- qplot(num0, t, data=num_t, xlab="Starting number", ylab="Iterations until 1", 
+                    geom=c("path","point"), colour=isPrime)
+  #plot <- qplot(t, num0, data=num_t, ylab="Starting number", xlab="Iterations until 1")
   
   time <- paste("Elapsed time is", round((proc.time() - ptm)[3],2), "seconds")
   
   print(time)
-  results <- list("plot"=plot, "data"=num_t)
+  results <- list("plot"=plot, "data"=num_t, "lineplot"=lineplot)
   return(results)
 }
 
+# Run the algorithm with 10,000 incremental numbers
 output <- collatz(c(1:10000))
+
+output$lineplot
 output$plot
-
-
