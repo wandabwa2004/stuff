@@ -75,3 +75,40 @@ output <- collatz(c(1:10000))
 
 output$lineplot
 output$plot
+
+
+###########
+
+# Plot the iteration paths for a subset of numbers
+
+collatz_path <- function(iterations = 20, num = 1:1000) {
+  
+  library(ggplot2)
+  # num = seq(1, 20, 3)
+  num_t = data.frame("t"=character(), "num0"=character(), "num_n"=character())
+  
+  for (n in 1:length(num)) {
+    num0 = num[n]
+    num_n = num[n]
+    for (t in 1:iterations) {
+      if (num_n %% 2 == 0) {
+        num_n = num_n / 2
+      } else {
+        num_n = num_n * 3 + 1
+      }
+      num_t = rbind(num_t, data.frame(t, num0, num_n))
+    }
+  }
+  
+  plot <- qplot(t, num_n, data=num_t, colour=as.factor(num0), geom="path")
+  #ggplot(num_t, aes(x=t, y=num_n)) + geom_line(aes(colour=as.factor(num0), group=num0))
+  
+  results <- list("plot"=plot, "data"=num_t)
+  return(results)
+}
+
+
+output_path <- collatz_path(120, as.vector(output$data[, 1]))
+output_path$plot
+
+table(aggregate(output_path$data$num_n, by=list(output_path$data$num0), FUN=max)[,2])
