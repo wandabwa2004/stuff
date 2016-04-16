@@ -6,7 +6,7 @@ require(stringr)
 require(RJSONIO)
 
 library(RODBC)
-DB <- odbcDriverConnect('driver={SQL Server};server=SCURISKISLPT7\\SQLDEV_SC;database=Social;trusted_connection=true')
+DB <- odbcDriverConnect('driver={SQL Server};server='';database='';trusted_connection=true')
 
 # download the file needed for authentication
 download.file(url="http://curl.haxx.se/ca/cacert.pem", destfile="cacert.pem")
