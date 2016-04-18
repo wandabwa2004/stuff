@@ -63,8 +63,7 @@ profileMeans <- function(data, num_filters = 0) {
 			psych_summary_temp <- summarize(psych.d[, i], target
 				, function(x) {c("mean"=mean(x, na.rm=T), "sd"=sd(x, na.rm=T), "count"=length(x[!is.na(x)]))})
 			# Calculate Z-score
-			psych_summary_temp$Z <- (psych_summary_temp[2, 2] - psych_summary_temp[1, 2])
-				/ (psych_summary_total[2] / sqrt(psych_summary_temp[2, 4]))
+			psych_summary_temp$Z <- (psych_summary_temp[2, 2] - psych_summary_temp[1, 2]) / (psych_summary_total[2] / sqrt(psych_summary_temp[2, 4]))
 			# Add column names
 			psych_summary_temp <- data.frame(psych_summary_temp, colnames(psych.d)[i])
 			colnames(psych_summary_temp) <- c("Target", "mean", "sd", "count", "Z-score", "attribute")
@@ -94,8 +93,7 @@ profileMeans <- function(data, num_filters = 0) {
 					psych_summary_temp <- summarize(psych.d[, i], target
 						, function(x) {c("mean"=mean(x, na.rm=T), "sd"=sd(x, na.rm=T), "count"=length(x[!is.na(x)]))})
 					# Calculate Z-score
-					psych_summary_temp$Z <- (psych_summary_temp[2, 2] - psych_summary_temp[1, 2])
-						/ (psych_summary_total[2] / sqrt(psych_summary_temp[2, 4]))
+					psych_summary_temp$Z <- (psych_summary_temp[2, 2] - psych_summary_temp[1, 2]) / (psych_summary_total[2] / sqrt(psych_summary_temp[2, 4]))
 					# Add column names
 					psych_summary_temp <- data.frame(psych_summary_temp, colnames(psych.d)[i])
 					colnames(psych_summary_temp) <- c("Target", "mean", "sd", "count", "Z-score", "attribute")
