@@ -31,7 +31,7 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0
   # Impute missing values - median if numeric, mode if categorical
   data_rf <- na.roughfix(data)
   
-  if (balanceClasses = T) {
+  if (balanceClasses == T) {
     tab <- table(data$Target)
     if (sample_False == 1) {
       sample_True <- floor(tab[1] / tab[2])
