@@ -7,7 +7,7 @@
 ############################################################################################
 
 runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
-                       , sample_True = 200, sample_False = 0.5) {
+                       , sample_True = 200, sample_False = 1, balanceClasses = F) {
   
   ptm <- proc.time()
   
@@ -30,6 +30,15 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0
   data$Target <- factor(data$Target)
   # Impute missing values - median if numeric, mode if categorical
   data_rf <- na.roughfix(data)
+  
+  if (balanceClasses = T) {
+    tab <- table(data$Target)
+    if (sample_False == 1) {
+      sample_True <- floor(tab[1] / tab[2])
+    } else {
+      sample_True <- floor(tab[1] * sample_False / tab[2])
+    }
+  }
   
   # Partition data into training and testing data sets
   set.seed(42); samp.n <- setNames(data.frame(1:dim(data_rf)[1], 0), c("row","partition"))
@@ -138,5 +147,6 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0
   cat("\nThe following objects have been added:\n")
   print(names(results))
   return(results)
+  gc()
   
 }
