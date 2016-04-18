@@ -9,7 +9,12 @@
 runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
 
 	ptm <- proc.time()
-
+	
+	# Install packages if not already installed
+	list.of.packages <- c("ggplot2", "xlsx","Hmisc","randomForest")
+  	new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+  	if(length(new.packages)) install.packages(new.packages)
+	
 	# Load required packages
 	library(ggplot2, quietly=T)
 	library(randomForest, quietly=T)
