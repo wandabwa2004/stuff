@@ -32,7 +32,7 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
 	data.train <- data_rf[samp.train, ]
 	data.test <- data_rf[samp.test, ]
 	if (replicate > 0) {
-		data.train <- rbind(data.train, data.train[rep(which(data$Target[samp.train]==1, arr.ind=T)
+		data.train <- rbind(data.train, data.train[rep(which(data_rf$Target[samp.train]==1, arr.ind=T)
                                                , each=replicate),])
 	}
 	
@@ -79,7 +79,7 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
 	write.xlsx2(means, excelFile, sheetName="Means", append=T, row.names=F, showNA=F)
 	write.xlsx2(profiles, excelFile, sheetName="Profiles", append=T, row.names=F, showNA=F)
 
-	results <- list("confusion"=confusion, "evaluation"=evaluation, "importance"=importance)
+	results <- list("confusion"=data.test.confusion, "evaluation"=evaluation, "importance"=importance)
 
 	cat("Finished\n\n")
 	time <- sprintf("Script run time was %s seconds (%s min)",
