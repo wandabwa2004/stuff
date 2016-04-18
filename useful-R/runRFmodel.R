@@ -6,7 +6,8 @@
 # Date: 15 April 2016
 ############################################################################################
 
-runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
+runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
+		,sample_True = 200, sample_False = 0.5) {
 
 	ptm <- proc.time()
 	
@@ -34,12 +35,23 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
 	set.seed(42); samp.train <- sample(samp.n$row, dim(samp.n)[1] * 0.7)
 	set.seed(42); samp.test <- sample(samp.n$row[-samp.train], dim(samp.n)[1] * 0.3)
 	
-	data.train <- data_rf[samp.train, ]
-	data.test <- data_rf[samp.test, ]
-	if (replicate > 0) {
-		data.train <- rbind(data.train, data.train[rep(which(data_rf$Target[samp.train]==1, arr.ind=T)
-                                               , each=replicate),])
+	# Replicate or sample True classes in training data
+	if (sample_True < 1) {
+	samp.train_T <- samp.train[sample(which(data_rf$Target[samp.train]==1, arr.ind=T)
+	                              , length(data_rf[data_rf$Target[samp.train]==1,1]) * sample_True)]
+	} else {
+	samp.train_T <- samp.train[rep(which(data_rf$Target[samp.train]==1, arr.ind=T), each = sample_True)]
 	}
+	# Replicate or sample False classes in training data
+	if (sample_False < 1) {
+	samp.train_F <- samp.train[sample(which(data_rf$Target[samp.train]==0, arr.ind=T)
+	                              , length(data_rf[data_rf$Target[samp.train]==0,1]) * sample_False)]
+	} else {
+	samp.train_F <- samp.train[rep(which(data_rf$Target[samp.train]==0, arr.ind=T), each = sample_True)]
+	}
+	
+	data.train <- data_rf[c(samp.train_T, samp.train_F), ]
+	data.test <- data_rf[samp.test, ]
 	
 	cat("Finished\nBuilding random forest model... ")
 
