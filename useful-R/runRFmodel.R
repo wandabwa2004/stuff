@@ -6,7 +6,7 @@
 # Date: 15 April 2016
 ############################################################################################
 
-runRFmodel <- function(data, excelFile = "ModelOutput.xlsx") {
+runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", replicate = 0) {
 
 	ptm <- proc.time()
 
@@ -28,8 +28,13 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx") {
 	set.seed(42); samp.n <- setNames(data.frame(1:dim(data_rf)[1], 0), c("row","partition"))
 	set.seed(42); samp.train <- sample(samp.n$row, dim(samp.n)[1] * 0.7)
 	set.seed(42); samp.test <- sample(samp.n$row[-samp.train], dim(samp.n)[1] * 0.3)
+	
 	data.train <- data_rf[samp.train, ]
 	data.test <- data_rf[samp.test, ]
+	if (replicate > 0) {
+		data.train <- rbind(data.train, data.train[rep(which(data$Target[samp.train]==1, arr.ind=T)
+                                               , each=replicate),])
+	}
 	
 	cat("Finished\nBuilding random forest model... ")
 
