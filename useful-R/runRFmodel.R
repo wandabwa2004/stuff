@@ -55,7 +55,7 @@ runRFmodel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0
   # Replicate or sample False classes in training data
   if (sample_False < 1) {
     samp.train_F <- samp.train[sample(which(data_rf$Target[samp.train]==0, arr.ind=T)
-                                      , length(data_rf[data_rf$Target[samp.train]==0,1]) * sample_False)]
+                                      , length(which(data_rf$Target[samp.train]==0, arr.ind=T)) * sample_False)]
   } else {
     samp.train_F <- samp.train[rep(which(data_rf$Target[samp.train]==0, arr.ind=T), each = sample_False)]
   }
