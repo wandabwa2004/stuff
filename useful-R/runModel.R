@@ -6,7 +6,7 @@
 # Date: 15 April 2016
 ############################################################################################
 
-runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
+runModel <- function(data, sample_training = 0.7
                        , sample_True = 1, sample_False = 1, balanceClasses = F
                        , model = "random forest", maxnodes, nodesize) {
   
@@ -105,6 +105,11 @@ runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
   set.seed(42); data.test$pred_Prob_decile <- cut(data.test$predProb[,2], breaks=quantile(data.test$predProb[,2]
                                                                                        , probs = seq(0,1,length=11)))
   test_deciles <- table(data.test$pred_Prob_decile, data.test$Target)
+  test_deciles <- cbind(test_deciles, prop.table(test_deciles, 2))
+  test_deciles <- setNames(data.frame(test_deciles, rev(cumsum(rev(test_deciles[,4]))))
+                           , c("Base","Target","Base%","Target%","Target%_cum"))
+  test_deciles[, 3:5] <- round(test_deciles[, 3:5] * 100, 1)
+  
   set.seed(42); data.train$predProb <- predict(data.model, data.train, type="prob")
   set.seed(42); data.train.rf.pred <- prediction(data.train$predProb[,2], data.train$Target)
   
@@ -117,8 +122,8 @@ runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
   #set.seed(42); data.test.rf.lift <- performance(data.test.rf.pred, "lift")
   #auc <- unlist(slot(data.test.rf.auc, "y.values"))
   
-  plot(tpr_fpr, main="Gains Chart ROC", type="l", col="red", lwd=2)
-  plot(train_tpr_fpr, add=T, col="blue", lwd=2, lty=2)
+  plot(tpr_fpr, main="Gains Chart ROC", type="l", col="red", lwd=2, xlim=c(0,1), ylim=c(0,1))
+  plot(train_tpr_fpr, add=T, col="blue", lwd=2, lty=2, xlim=c(0,1), ylim=c(0,1))
   legend("bottomright", legend=c("Training","Testing"), col=c(1,2), lty=1)
   abline(0,1, col="darkgray")
   grid(5)
@@ -129,32 +134,6 @@ runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
   cat("evaluating... ")
   evaluation <- eval(data.test.confusion, binary=T)
   
-  cat("Finished\nRunning comparisons... ")
-  
-  # Take only categorical predictors for profile function
-  data_profile <- data[, c(1,2)]
-  data_correlate <- data[, c(1,2)]
-  for (i in colnames(data[, -c(1,2)])) {
-    if (is.factor(data[, i]) == T) {
-      data_profile <- cbind(data_profile, setNames(data.frame(data[, i]), i))
-    } else {
-      data_correlate <- cbind(data_correlate, setNames(data.frame(data[, i]), i))
-    }
-  }
-  
-  profiles <- data.frame(profile(data_profile))
-  
-  # Correlation analysis and comparison of averages between two groups
-  corr <- correlate(data_correlate)
-  #corr_varimp <- merge(x = importance, y = corr, by="variable", all.x = T)
-  #means <- profileMeans(data_correlate, num_filters = 0)
-  
-  cat("Finished\n\n")
-  cat(sprintf("Writing results to Excel file: %s ... ", excelFile))
-  
-  write.xlsx2(corr, excelFile, sheetName="Correlations", row.names=F, showNA=F)
-  #write.xlsx2(means, excelFile, sheetName="Means", append=T, row.names=F, showNA=F)
-  write.xlsx2(profiles, excelFile, sheetName="Profiles", row.names=F, showNA=F, append=T)
   if (model == "random forest") {
     results <- list("confusion"=data.test.confusion, "evaluation"=evaluation, "importance"=importance
                     ,"model"=data.model, "precision_recall"=precision_recall, "tpr_fpr"=tpr_fpr
@@ -164,8 +143,8 @@ runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
                     ,"model"=data.model, "precision_recall"=precision_recall, "tpr_fpr"=tpr_fpr
                     ,"test_deciles"=test_deciles)
   }
+  cat("Finished\n")
   
-  cat("Finished\n\n")
   time <- sprintf("Script run time was %s seconds (%s min)",
                   round(((proc.time() - ptm)[3]), 2), round(((proc.time() - ptm)[3]) / 60, 2))
   cat("\n", time, "\n", sep="")
@@ -175,7 +154,7 @@ runModel <- function(data, excelFile = "ModelOutput.xlsx", sample_training = 0.7
               paste(round(evaluation$recall * 100, 1), "%", sep="")))
   cat("\nConfusion matrix:")
   print(data.test.confusion)
-  cat("\nPrediction deciles on test data:")
+  cat("\nPrediction deciles on test data:\n")
   print(test_deciles)
   cat("\nThe following objects have been added:\n")
   print(names(results))
