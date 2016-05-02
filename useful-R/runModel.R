@@ -102,8 +102,8 @@ runModel <- function(data, sample_training = 0.7
   set.seed(42); data.test.confusion <- table(data.test$Target, data.test$pred)
   set.seed(42); data.test$predProb <- predict(data.model, data.test, type="prob")
   set.seed(42); data.test.rf.pred <- prediction(data.test$predProb[,2], data.test$Target)  
-  set.seed(42); data.test$pred_Prob_decile <- cut(data.test$predProb[,2], breaks=quantile(data.test$predProb[,2]
-                                                                                       , probs = seq(0,1,length=11)))
+  set.seed(42); data.test$pred_Prob_decile <- cut(data.test$predProb[,2], breaks=unique(quantile(data.test$predProb[,2]
+                                                                                       , probs = seq(0,1,length=11))))
   test_deciles <- table(data.test$pred_Prob_decile, data.test$Target)
   test_deciles <- cbind(test_deciles, prop.table(test_deciles, 2))
   test_deciles <- setNames(data.frame(test_deciles, rev(cumsum(rev(test_deciles[,4]))))
