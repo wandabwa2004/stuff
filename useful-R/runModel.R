@@ -81,18 +81,18 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
   
   # Replicate or sample True classes in training data
   if (sample_True < 1) {
-    samp.train_T <- samp.train[sample(which(data_rf$Target[samp.train]==1, arr.ind=T), 
-                                    length(data_rf[data_rf$Target[samp.train]==1,1]) * sample_True)]
+    samp.train_T <- samp.train[sample(which(data_rf$Target[samp.train] == 1, arr.ind = T), 
+                                  length(data_rf[data_rf$Target[samp.train] == 1,1]) * sample_True)]
   } else {
-    samp.train_T <- samp.train[rep(which(data_rf$Target[samp.train]==1, arr.ind=T), 
+    samp.train_T <- samp.train[rep(which(data_rf$Target[samp.train] == 1, arr.ind = T), 
                                     each = sample_True)]
   }
   # Replicate or sample False classes in training data
   if (sample_False < 1) {
-    samp.train_F <- samp.train[sample(which(data_rf$Target[samp.train]==0, arr.ind=T), 
-                            length(which(data_rf$Target[samp.train]==0, arr.ind=T)) * sample_False)]
+    samp.train_F <- samp.train[sample(which(data_rf$Target[samp.train] == 0, arr.ind = T), 
+                        length(which(data_rf$Target[samp.train] == 0, arr.ind = T)) * sample_False)]
   } else {
-    samp.train_F <- samp.train[rep(which(data_rf$Target[samp.train]==0, arr.ind=T), 
+    samp.train_F <- samp.train[rep(which(data_rf$Target[samp.train] == 0, arr.ind = T), 
                             each = sample_False)]
   }
   
@@ -111,12 +111,12 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
   if (model == "random forest") {
     # Build RF model
     if (!missing(maxnodes)) {
-      data.model <- randomForest(factor(Target) ~ ., data=data.train[, -1]
-                                 ,maxnodes=maxnodes, nodesize=nodesize)
+      data.model <- randomForest(factor(Target) ~ ., data = data.train[, -1]
+                                 ,maxnodes = maxnodes, nodesize = nodesize)
     } else {
-      data.model <- randomForest(factor(Target) ~ ., data=data.train[, -1])
+      data.model <- randomForest(factor(Target) ~ ., data = data.train[, -1])
     }
-    importance <- data.frame(importance(data.model, type=2))
+    importance <- data.frame(importance(data.model, type = 2))
     importance$variable <- row.names(importance)
     row.names(importance) <- NULL
     par(mfrow=c(3,1))
@@ -125,39 +125,39 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
                             #,replace=T, classwt=c(1,100))
   } else if (model == "SVM") {
     # Build SVM model
-    library(e1071, quietly=T)
-    data.model <- svm(factor(Target) ~., data=data.train[, -1])
+    library(e1071, quietly = T)
+    data.model <- svm(factor(Target) ~., data = data.train[, -1])
     par(mfrow=c(2,1))
   } else if (model == "CART") {
-    library(rpart, quietly=T)
-    data.model <- rpart(factor(Target) ~., data=data.train[, -1], method  = "class")
-    par(mfrow=c(2,1))
+    library(rpart, quietly = T)
+    data.model <- rpart(factor(Target) ~., data = data.train[, -1], method  = "class")
+    par(mfrow = c(2,1))
   }
   
   # Create model predictions -----------------------------------------------------------------------
 
   cat("predicting... ")
   # Create predictions against the test data
-  set.seed(42); data.test$pred <- predict(data.model, data.test, type="class")
+  set.seed(42); data.test$pred <- predict(data.model, data.test, type = "class")
   set.seed(42); data.test.confusion <- table(data.test$Target, data.test$pred)
-  set.seed(42); data.test$predProb <- predict(data.model, data.test, type="prob")
+  set.seed(42); data.test$predProb <- predict(data.model, data.test, type = "prob")
   set.seed(42); data.test.rf.pred <- prediction(data.test$predProb[,2], data.test$Target)  
   
   # Calculate prediction probability deciles
   set.seed(42); data.test$pred_Prob_decile <- cut(data.test$predProb[,2], 
-                                                  breaks=unique(quantile(data.test$predProb[,2], 
-                                                    probs = seq(0,1,length=11))))
+                                                  breaks = unique(quantile(data.test$predProb[, 2], 
+                                                    probs = seq(0,1,length = 11))))
   
   # Count the observations by the target, and calculate percentages
   test_deciles <- table(data.test$pred_Prob_decile, data.test$Target)
   test_deciles <- cbind(test_deciles, prop.table(test_deciles, 2))
-  test_deciles <- setNames(data.frame(test_deciles, rev(cumsum(rev(test_deciles[,4]))))
+  test_deciles <- setNames(data.frame(test_deciles, rev(cumsum(rev(test_deciles[, 4]))))
                            , c("Base","Target","Base%","Target%","Target%_cum"))
   test_deciles[, 3:5] <- round(test_deciles[, 3:5] * 100, 1)
   
   # Create predictions against the training data set
-  set.seed(42); data.train$predProb <- predict(data.model, data.train, type="prob")
-  set.seed(42); data.train.rf.pred <- prediction(data.train$predProb[,2], data.train$Target)
+  set.seed(42); data.train$predProb <- predict(data.model, data.train, type = "prob")
+  set.seed(42); data.train.rf.pred <- prediction(data.train$predProb[, 2], data.train$Target)
   
   # ROC precision and recall, tpr and fpr
   set.seed(42); precision_recall <- performance(data.test.rf.pred, "prec","rec")
@@ -169,14 +169,15 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
   #auc <- unlist(slot(data.test.rf.auc, "y.values"))
   
   # Plot the tpr and fpr gains chart ROC for both testing and training data
-  plot(tpr_fpr, main="Gains Chart ROC", type="l", col="red", lwd=2, xlim=c(0,1), ylim=c(0,1))
-  plot(train_tpr_fpr, add=T, col="blue", lwd=2, lty=2, xlim=c(0,1), ylim=c(0,1))
-  legend("bottomright", legend=c("Training","Testing"), col=c(1,2), lty=1)
-  abline(0,1, col="darkgray")
+  plot(tpr_fpr, main = "Gains Chart ROC", type = "l", col = "red", lwd = 2, 
+        xlim = c(0,1), ylim = c(0,1))
+  plot(train_tpr_fpr, add = T, col = "blue", lwd = 2, lty = 2, xlim = c(0,1), ylim = c(0,1))
+  legend("bottomright", legend = c("Training","Testing"), col = c(1,2), lty = 1)
+  abline(0,1, col = "darkgray")
   grid(5)
   
   # Plot the precision and recall chart on the testing data
-  plot(precision_recall, main="Precision and Recall chart", type="l", col="red", lwd=2)
+  plot(precision_recall, main = "Precision and Recall chart", type = "l", col = "red", lwd = 2)
   grid(5)
   
   # Finalise outputs -------------------------------------------------------------------------------
@@ -198,12 +199,12 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
   
   time <- sprintf("Script run time was %s seconds (%s min)",
                   round(((proc.time() - ptm)[3]), 2), round(((proc.time() - ptm)[3]) / 60, 2))
-  cat("\n", time, "\n", sep="")
+  cat("\n", time, "\n", sep = "")
   cat(sprintf("\nOverall model accuracy is %s \n", 
-              paste(round(evaluation$Accuracy * 100, 1), "%", sep="")))
+              paste(round(evaluation$Accuracy * 100, 1), "%", sep = "")))
   cat(sprintf("Model precision is %s and recall is %s \n",
-              paste(round(evaluation$precision * 100, 1), "%", sep=""),
-              paste(round(evaluation$recall * 100, 1), "%", sep="")))
+              paste(round(evaluation$precision * 100, 1), "%", sep = ""),
+              paste(round(evaluation$recall * 100, 1), "%", sep = "")))
   cat("\nConfusion matrix:")
   print(data.test.confusion)
   cat("\nPrediction deciles on test data:\n")
@@ -214,3 +215,4 @@ runModel <- function(data, sample_training = 0.7, sample_True = 1, sample_False 
   gc()
   
 }
+
