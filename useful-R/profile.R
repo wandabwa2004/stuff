@@ -28,8 +28,11 @@ profile <- function(data) {
                   ,"Index"=ggplot(profile.df, aes(x=FieldValue, y=Index-100, fill=Field)) + geom_bar() + coord_flip() + geom_text(aes(label=Index)) + 
                     labs(x="Variables",y="Index Score - 100",title="Index Plot") 
                   ,"table"=profile.df)
-  #return(profile)
+  return(profile)
 }
+
+
+
 
 
 
