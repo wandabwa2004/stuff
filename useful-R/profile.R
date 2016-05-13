@@ -147,7 +147,7 @@ profile <- function(data, num_filters = 0) {
       # Iterate over field values
       for (k in 1:length(filter)) {
         # Subset the data
-        data <- data_original[data_original[, (j + 2)] == filter[k], -c(3:(3 + num_filters))]
+        data <- data_original[data_original[, (j + 2)] == filter[k], -c(3:(2 + num_filters))]
         # Create target
         #target <- data_original$Target[data_original[, (j + 2)] == filter[k]]
         # Iterate over the profiling fields
