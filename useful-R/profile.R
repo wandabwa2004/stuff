@@ -72,11 +72,14 @@ profile <- function(data, num_filters = 0) {
   #   table:  data.frame with profiling for all fields against the target, complete with index 
   #           scores and Z-scores
   
+  data_profile <- data[, 1:2]
   for (i in colnames(data[, -c(1,2)])) {
     if (is.factor(data[, i]) == T) {
-      data <- cbind(data, setNames(data.frame(data[, i]), i))
+      data_profile <- cbind(data_profile, setNames(data.frame(data[, i]), i))
       }
   }
+  data <- data_profile
+  rm(data_profile)
   
   if (num_filters == 0) {
     # Initialise empty data.frame
