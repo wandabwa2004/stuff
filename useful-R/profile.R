@@ -25,7 +25,7 @@ comparisons <- function(data, excelFile = "Comparisons.xlsx") {
 
   cat("Running comparisons... ")
   
-  # Take only categorical predictors for profile function
+  # Take only categorical predictors for profile function, numeric for correlate function
   data_profile <- data[, c(1,2)]
   data_correlate <- data[, c(1,2)]
   for (i in colnames(data[, -c(1,2)])) {
@@ -62,7 +62,7 @@ comparisons <- function(data, excelFile = "Comparisons.xlsx") {
 
 
 
-profile <- function(data) {
+profile <- function(data, num_filters = 0) {
   # Function runs categorical profiles of a binary target.
   #
   # Args:
@@ -71,54 +71,138 @@ profile <- function(data) {
   # Returns:
   #   table:  data.frame with profiling for all fields against the target, complete with index 
   #           scores and Z-scores
-
-  # Initialise empty data.frame
-  profile.df <- data.frame(Field = character(), FieldValue = character(), Base = character(),
-                          Target = character(), Base_PT = character(), Total_PT = character(),
-                          Index = character(), ZScore = character())
   
-  # Iterate over the profiling fields
-  for (i in 3:length(data)) {
-    # Calculate frequency of False class by the profiling field
-    a <- setNames(data.frame(table(data[i][data[2] == 0])), c("FieldValue","Base"))
-    # Calculate frequency of True class by the profiling field
-    b <- setNames(data.frame(table(data[i][data[2] == 1])), c("FieldValue","Target"))
-    # Merge frequencies for both classes together into the same data.frame
-    c <- merge(a, b, by = intersect(names(a), names(b)), all = TRUE)
-    # Set any NAs to be 0
-    c$Base[is.na(c$Base)] <- 0; c$Target[is.na(c$Target)] <- 0
-    # Calculate total counts for each class
-    n1 <- sapply(c[2], sum); n2 <- sapply(c[3], sum)
-    # Calculate percentages
-    c <- setNames(data.frame(c, c[2] / n1, c[3] / n2, (c[2] + c[3]) / sapply(c[2] + c[3], sum) ), 
-                  c(colnames(c), "Base_PT", "Target_PT", "Total_PT"))
-    # Calculate Index and Z scores
-    c <- setNames(data.frame(c, 
-                  100 * c[5] / c[4], (c[5] - c[4]) / sqrt(c[6] * (1 - c[6]) * (1 / n1 + 1 / n2) ) ),
-                    c(colnames(c), "Index","ZScore"))
-    # Add field name to the data.frame
-    c <- setNames(data.frame(rep(names(data[i]), length(c[, 1])), c, row.names = NULL), 
-                    c("Field", colnames(c)) )
-    # Add rows to main data.frame
-    profile.df <- rbind(profile.df, c)
+  for (i in colnames(data[, -c(1,2)])) {
+    if (is.factor(data[, i]) == T) {
+      data <- cbind(data, setNames(data.frame(data[, i]), i))
+      }
   }
   
-  # Add Significance field
-  profile.df <- setNames(data.frame(profile.df[profile.df$Index != Inf, ] 
-                      ,ifelse(abs(profile.df[profile.df$Index != Inf, ]$ZScore) > 2.58, "Y", "N")) 
-                         ,c(colnames(profile.df), "Sig", row.names = NULL))
-  # Re-order data
-  profile.df <- data.frame(profile.df[with(profile.df, order(Field, FieldValue)), ], 
-                            row.names = NULL)
-  # Format output
-  profile.df <- setNames(data.frame(profile.df$Field, profile.df$FieldValue, 
-                                    profile.df$Base, profile.df$Target, 
-                                    paste(100 * round(profile.df$Base_PT, 4), "%", sep = ""),
-                                    paste(100 * round(profile.df$Target_PT, 4), "%", sep = ""),
-                                    paste(100 * round(profile.df$Total_PT, 4), "%", sep = ""),
-                                    round(profile.df$Index, 2), 
-                                    round(profile.df$ZScore, 2), profile.df$Sig)
-                                      ,colnames(profile.df))
+  if (num_filters == 0) {
+    # Initialise empty data.frame
+    profile.df <- data.frame(Field = character(), FieldValue = character(), Base = character(),
+                            Target = character(), Base_PT = character(), Total_PT = character(),
+                            Index = character(), ZScore = character())
+    
+    # Iterate over the profiling fields
+    for (i in 3:length(data)) {
+      # Calculate frequency of False class by the profiling field
+      a <- setNames(data.frame(table(data[i][data[2] == 0])), c("FieldValue","Base"))
+      # Calculate frequency of True class by the profiling field
+      b <- setNames(data.frame(table(data[i][data[2] == 1])), c("FieldValue","Target"))
+      # Merge frequencies for both classes together into the same data.frame
+      c <- merge(a, b, by = intersect(names(a), names(b)), all = TRUE)
+      # Set any NAs to be 0
+      c$Base[is.na(c$Base)] <- 0; c$Target[is.na(c$Target)] <- 0
+      # Calculate total counts for each class
+      n1 <- sapply(c[2], sum); n2 <- sapply(c[3], sum)
+      # Calculate percentages
+      c <- setNames(data.frame(c, c[2] / n1, c[3] / n2, (c[2] + c[3]) / sapply(c[2] + c[3], sum) ), 
+                    c(colnames(c), "Base_PT", "Target_PT", "Total_PT"))
+      # Calculate Index and Z scores
+      c <- setNames(data.frame(c, 
+                    100 * c[5] / c[4], (c[5] - c[4]) / sqrt(c[6] * (1 - c[6]) * (1 / n1 + 1 / n2) ) ),
+                      c(colnames(c), "Index","ZScore"))
+      # Add field name to the data.frame
+      c <- setNames(data.frame(rep(names(data[i]), length(c[, 1])), c, row.names = NULL), 
+                      c("Field", colnames(c)) )
+      # Add rows to main data.frame
+      profile.df <- rbind(profile.df, c)
+    }
+    
+    # Add Significance field
+    profile.df <- setNames(data.frame(profile.df[profile.df$Index != Inf, ] 
+                        ,ifelse(abs(profile.df[profile.df$Index != Inf, ]$ZScore) > 2.58, "Y", "N")) 
+                           ,c(colnames(profile.df), "Sig", row.names = NULL))
+    # Re-order data
+    profile.df <- data.frame(profile.df[with(profile.df, order(Field, FieldValue)), ], 
+                              row.names = NULL)
+    # Format output
+    profile.df <- setNames(data.frame(profile.df$Field, profile.df$FieldValue, 
+                                      profile.df$Base, profile.df$Target, 
+                                      paste(100 * round(profile.df$Base_PT, 4), "%", sep = ""),
+                                      paste(100 * round(profile.df$Target_PT, 4), "%", sep = ""),
+                                      paste(100 * round(profile.df$Total_PT, 4), "%", sep = ""),
+                                      round(profile.df$Index, 2), 
+                                      round(profile.df$ZScore, 2), profile.df$Sig)
+                                        ,colnames(profile.df))
+    profile.df <- profile.df[with(profile.df, order(Field, FieldValue)), ]
+                           
+  } else {
+    # Initialise empty data.frame
+    profile.df <- data.frame(Field = character(), FieldValue = character(), Base = character(),
+                            Target = character(), Base_PT = character(), Total_PT = character(),
+                            Index = character(), ZScore = character(), FilterField = character(),
+                            FilterValue = character())
+    data_original <- data
+    # If num_filters is not 0, then subset the data by values of filter fields ----------------
+    # Iterate over filter fields
+    for (j in 1:num_filters) {
+      # Create unique vector of filter values
+      filter <- unique(data_original[, (j + 2)])
+      filter <- filter[!is.na(filter)]
+      # Iterate over field values
+      for (k in 1:length(filter)) {
+        # Subset the data
+        data <- data_original[data_original[, (j + 2)] == filter[k], -c(3:(3 + num_filters))]
+        # Create target
+        #target <- data_original$Target[data_original[, (j + 2)] == filter[k]]
+        # Iterate over the profiling fields
+        for (i in 3:length(data)) {
+          # Calculate frequency of False class by the profiling field
+          a <- setNames(data.frame(table(data[i][data[2] == 0])), c("FieldValue","Base"))
+          # Calculate frequency of True class by the profiling field
+          try(b <- setNames(data.frame(table(data[i][data[2] == 1])), c("FieldValue","Target")), silent=T)
+          if (!exists("b")) {
+            b <- setNames(data.frame(unique(data[i]), 0), c("FieldValue","Target"))
+          }
+          # Merge frequencies for both classes together into the same data.frame
+          c <- merge(a, b, by = intersect(names(a), names(b)), all = TRUE)
+          # Set any NAs to be 0
+          c$Base[is.na(c$Base)] <- 0; c$Target[is.na(c$Target)] <- 0
+          # Calculate total counts for each class
+          n1 <- sapply(c[2], sum); n2 <- sapply(c[3], sum)
+          # Calculate percentages
+          c <- setNames(data.frame(c, c[2] / n1, c[3] / n2, (c[2] + c[3]) / sapply(c[2] + c[3], sum) ), 
+                        c(colnames(c), "Base_PT", "Target_PT", "Total_PT"))
+          # Calculate Index and Z scores
+          c <- setNames(data.frame(c, 
+                        100 * c[5] / c[4], (c[5] - c[4]) / sqrt(c[6] * (1 - c[6]) * (1 / n1 + 1 / n2) ) ),
+                          c(colnames(c), "Index","ZScore"))
+          # Add field name to the data.frame
+          c <- setNames(data.frame(rep(names(data[i]), length(c[, 1])), c, row.names = NULL), 
+                          c("Field", colnames(c)) )
+          # Add filter field and value to data.frame
+          c <- data.frame(c, data.frame(colnames(data_original)[2 + j], filter[k]))
+          colnames(c) <- c(colnames(c)[1:9], "FilterField", "FilterValue")
+          # Add rows to main data.frame
+          profile.df <- rbind(profile.df, c)
+          # Clean up
+          rm(a); rm(b); rm(c)
+        }
+      }
+    }
+        
+    # Add Significance field
+    profile.df <- setNames(data.frame(profile.df[profile.df$Index != Inf, ] 
+                        ,ifelse(abs(profile.df[profile.df$Index != Inf, ]$ZScore) > 2.58, "Y", "N")) 
+                           ,c(colnames(profile.df), "Sig", row.names = NULL))
+    # Re-order data
+    profile.df <- data.frame(profile.df[with(profile.df, order(Field, FieldValue)), ], 
+                              row.names = NULL)
+    # Format output
+    profile.df <- setNames(data.frame(profile.df$Field, profile.df$FieldValue, 
+                                      profile.df$Base, profile.df$Target, 
+                                      paste(100 * round(profile.df$Base_PT, 4), "%", sep = ""),
+                                      paste(100 * round(profile.df$Target_PT, 4), "%", sep = ""),
+                                      paste(100 * round(profile.df$Total_PT, 4), "%", sep = ""),
+                                      round(profile.df$Index, 2), 
+                                      round(profile.df$ZScore, 2), 
+                                      profile.df$FilterField, profile.df$FilterValue, profile.df$Sig)
+                                        ,colnames(profile.df))
+    profile.df <- profile.df[with(profile.df, order(FilterField, FilterValue, Field, FieldValue)), ]  
+  }
+  
   profile <- list("table" = profile.df)
   return(profile)
 }
@@ -261,7 +345,7 @@ correlate <- function(data = data, variables = 0) {
     # Clean up data - remove variables which won't be used
     data <- data[, -c(1, variables)]
     # Only include variables with less than 25% NA values
-    data <- data[, which(colMeans(is.na(data)) <= 0.25)]
+    data <- data[, which(colMeans(is.na(data)) <= 0.75)]
     # Only use complete rows
     data <- data[complete.cases(data), ]
     
@@ -345,4 +429,3 @@ toFactor <- function(data) {
   }
   return(data)
 }
-
